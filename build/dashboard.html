@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Finance Dashboard</title>
+    <link rel="stylesheet" href="styles.css"> <!-- Link to the unified CSS file -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script> <!-- Include Chart.js -->
+    <script defer src="dashboard.js"></script> <!-- Link to the JavaScript file -->
+</head>
+<body>
+    <header>
+        <div id="header-content">
+            <h1>Finance Dashboard</h1>
+            <div id="user-info">
+                <div id="user-icon" onclick="toggleDropdown()">U</div>
+                <div id="user-dropdown" class="hidden">
+                    <p id="dropdown-username"></p>
+                    <p id="dropdown-balance"></p>
+                    <div id="dropdown-stocks">
+                        <h3>Stocks</h3>
+                        <ul id="stocks-list"></ul>
+                    </div>
+                    <button id="logout-button" onclick="logout()">Logout</button>
+                </div>
+            </div>
+        </div>
+    </header>
+    <main>
+        <section>
+            <h2 id="stock-name">Stock Recommendation Trends</h2>
+            <div id="chart-container">
+                <canvas id="recommendation-chart"></canvas>
+            </div>
+        </section>
+    </main>
+</body>
+</html>
