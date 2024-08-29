@@ -237,7 +237,7 @@ app.post('/buy', ensureAuthenticated, async (req, res) => {
 
     const userBalance = userRows[0].balance;
     if (userBalance < totalAmount) {
-      return res.status(400).json({ error: 'Insufficient balance' });
+      return res.status(400).json({ error: 'Insufficient balance',message:'Insufficient balance'});
     }
 
     const transactionId = uuidv4();
@@ -248,10 +248,10 @@ app.post('/buy', ensureAuthenticated, async (req, res) => {
 
     await pool.query('UPDATE `user` SET balance = balance - ? WHERE id = ?', [totalAmount, user_id]);
 
-    res.status(201).json({ message: 'Stock bought successfully' });
+    return res.status(201).json({ message: 'Stock bought successfully' });
   } catch (error) {
     console.error('Error buying stock:', error);
-    res.status(500).json({ error: 'Internal Server Error' });
+    return res.status(500).json({ error: 'Internal Server Error' });
   }
 });
 
@@ -272,7 +272,7 @@ app.post('/sell', ensureAuthenticated, async (req, res) => {
 
     const currentQuantity = inventoryRows[0].current_quantity || 0;
     if (quantity > currentQuantity) {
-      return res.status(400).json({ error: 'Insufficient stock quantity' });
+      return res.status(400).json({ error: 'Insufficient stock quantity',message: 'Insufficient stock quantity' });
     }
 
     const totalAmount = quantity * price_per_unit;

@@ -18,6 +18,7 @@ const Navbar = () => {
       navigate('/dashboard');
     } else if (e.key === 'logout') {
       logout();
+      sessionStorage.clear();
       navigate('/login');
     }
   };

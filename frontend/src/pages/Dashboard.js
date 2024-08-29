@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Input, Button, Modal, InputNumber, Card } from 'antd';
+import { Navigate, Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import Chart from 'chart.js/auto';
 
@@ -14,7 +15,13 @@ const Dashboard = () => {
   const [currentPrice, setCurrentPrice] = useState(null);
   const [companyInfo, setCompanyInfo] = useState(null); // State to hold company information
   const [isModalVisible, setIsModalVisible] = useState(false);
+  const [isBuyModalVisible, setIsBuyModalVisible] = useState(false);
   const [shares, setShares] = useState(1);
+  const navigate = useNavigate();
+
+  if(!sessionStorage.getItem('id')){
+    return <Navigate to="/login" />;
+  }
 
   const fetchStockData = async (symbol) => {
     setLoading(true);
@@ -76,7 +83,7 @@ const Dashboard = () => {
       );
 
       setCompanyInfo(companyResponse.data); // Set the company information
-
+      
     } catch (error) {
       setError('Failed to fetch stock data. Please try again.');
       console.error('Error:', error);
@@ -160,38 +167,81 @@ const Dashboard = () => {
   };
 
   const handleBuyClick = () => {
+    setIsBuyModalVisible(true);
+  };
+  const handleSellClick = () => {
     setIsModalVisible(true);
   };
 
-  const handleModalOk = async () => {
+  const handleBuyModalOk = async () => {
     setLoading(true);
+    setIsBuyModalVisible(false);
     try {
-      const response = await axios.post(
-        'http://localhost:3000/buy', 
-        {
-          stock_name: stockName,
-          quantity: shares,
-          price_per_unit: currentPrice
+      const response = await fetch('http://localhost:3000/buy', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
         },
-        {
-          withCredentials: true, // Include credentials to handle session-based authentication
-        }
-      );
-  
-      if (response.status === 201) {
-        console.log('Stock bought successfully');
-        // Optionally, you can add further handling here, like updating the user's balance or showing a success message.
+        body: JSON.stringify({
+          stock_name: stockName, // 股票名称
+        quantity: shares, // 数量
+        price_per_unit: currentPrice, // 每单位价格
+        }),
+        credentials: 'include', // Include credentials (cookies)
+      });
+
+      if (response.ok) {
+        const userData = await response.json();
+        localStorage.setItem('token', userData.token); // Store token in local storage
+        alert("Buy in stock success")
+        navigate('/dashboard'); // Redirect to the root path (http://localhost:3002/)
       } else {
-        console.error('Failed to buy stock:', response.data.error);
+        const errorData = await response.json();
+        setError(errorData.error || 'Login failed. Please try again.');
       }
-    } catch (error) {
-      console.error('Error buying stock:', error);
-      // Optionally, handle the error here, like showing an error message to the user
+      
+    } catch (err) {
+      console.error('Error logging in:', err);
+      setError('Login failed. Please try again.');
     } finally {
       setLoading(false);
-      setIsModalVisible(false); // Close the modal after the operation completes
     }
   };
+
+  const handleSellModalOk = async (values) => {
+    setIsModalVisible(false);
+    try {
+      const response = await fetch('http://localhost:3000/sell', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          stock_name: stockName, // 股票名称
+        quantity: shares, // 数量
+        price_per_unit: currentPrice, // 每单位价格
+        }),
+        credentials: 'include', // Include credentials (cookies)
+      });
+
+      if (response.ok) {
+        const userData = await response.json();
+        localStorage.setItem('token', userData.token); // Store token in local storage
+        alert("Sell out stock success")
+        navigate('/dashboard'); // Redirect to the root path (http://localhost:3002/)
+      } else {
+        const errorData = await response.json();
+        setError(errorData.error || 'Login failed. Please try again.');
+      }
+      
+    } catch (err) {
+      console.error('Error logging in:', err);
+      setError('Login failed. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   
   const handleModalCancel = () => {
     setIsModalVisible(false);
@@ -203,35 +253,57 @@ const Dashboard = () => {
 
   return (
     <div style={{ maxWidth: '1200px', margin: 'auto', padding: '50px' }}>
-      <div style={{ display: 'flex', marginBottom: '20px' }}>
-        <div style={{ flex: 1, marginRight: '20px' }}>
-          <Input
-            placeholder="Search for a stock (e.g., AAPL)"
-            value={stockName}
-            onChange={(e) => setStockName(e.target.value)}
-            style={{ marginBottom: '20px' }}
-          />
-          <Button type="primary" onClick={handleSearch} loading={loading}>
-            Search
-          </Button>
-
+    <div style={{ display: 'flex', marginBottom: '20px' }}>
+      <div style={{ flex: 1, marginRight: '20px' }}>
+        <Input
+          placeholder="Search for a stock (e.g., AAPL)"
+          value={stockName}
+          onChange={(e) => setStockName(e.target.value)}
+          style={{ marginBottom: '20px' }}
+        />
+        <Button type="primary" onClick={handleSearch} loading={loading}>
+          Search
+        </Button>
           {error && <div style={{ color: 'red', marginTop: '20px' }}>{error}</div>}
 
           <h2>{stockName ? `${stockName} Stock Trend` : 'Stock Trend'}</h2>
+         
+          {currentPrice !== null && (
+            
+          <>
+           <p style={{ fontSize: '20px', fontWeight: 'bold', marginTop: '20px' }}>
+  Current Price: ${currentPrice?.toFixed(2)}
+</p>
+            <Button
+        type="primary"
+        style={{
+          background: 'linear-gradient(45deg, #32cd32, #7cfc00)',
+          borderColor: '#32cd32',
+          color: '#fff',
+          fontWeight: 'bold',
+        }}
+        onClick={handleBuyClick}
+      >
+        Buy
+      </Button>
+      <Button
+        type="primary"
+        style={{
+          background: 'linear-gradient(45deg, #ff4500, #ff6347)',
+          borderColor: '#ff4500',
+          color: '#fff',
+          fontWeight: 'bold',
+          marginLeft: '10px', // Add some spacing between the buttons
+        }}
+        onClick={handleSellClick}
+      >
+        Sell
+      </Button>
+          </>
+        )}
           <div style={{ width: '100%', marginTop: '20px' }}>
             <canvas id="acquisitions"></canvas>
           </div>
-        </div>
-
-        <div style={{ width: '200px', textAlign: 'center' }}>
-          {currentPrice !== null && (
-            <>
-              <h3>Current Price: ${currentPrice.toFixed(2)}</h3>
-              <Button type="primary" onClick={handleBuyClick}>
-                Buy
-              </Button>
-            </>
-          )}
         </div>
       </div>
 
@@ -257,7 +329,7 @@ const Dashboard = () => {
                   <p><strong>Industry:</strong> {companyInfo.finnhubIndustry}</p>
                   <p><strong>IPO Date:</strong> {companyInfo.ipo}</p>
                   <p><strong>Market Capitalization:</strong> ${parseInt(companyInfo.marketCapitalization).toLocaleString()}</p>
-                  <p><strong>Outstanding Shares:</strong> {companyInfo.shareOutstanding.toLocaleString()}</p>
+                  <p><strong>Outstanding Shares:</strong> {companyInfo.shareOutstanding}</p>
                   <p><strong>Ticker:</strong> {companyInfo.ticker}</p>
                   <p><strong>Phone:</strong> {companyInfo.phone}</p>
                   <p><strong>Website:</strong> <a href={companyInfo.weburl} target="_blank" rel="noopener noreferrer">{companyInfo.weburl}</a></p>
@@ -270,12 +342,28 @@ const Dashboard = () => {
 
       <Modal
         title="Buy Stocks"
-        visible={isModalVisible}
-        onOk={handleModalOk}
+        visible={isBuyModalVisible}
+        onOk={handleBuyModalOk}
         onCancel={handleModalCancel}
       >
         <p>Current Price: ${currentPrice?.toFixed(2)}</p>
         <p>Enter the number of shares you want to buy:</p>
+        <InputNumber
+          min={1}
+          defaultValue={1}
+          onChange={handleSharesChange}
+        />
+        <p>Total Price: ${(shares * currentPrice).toFixed(2)}</p>
+      </Modal>
+
+      <Modal
+        title="Sell Stocks"
+        visible={isModalVisible}
+        onOk={handleSellModalOk}
+        onCancel={handleModalCancel}
+      >
+        <p>Current Price: ${currentPrice?.toFixed(2)}</p>
+        <p>Enter the number of shares you want to Sell:</p>
         <InputNumber
           min={1}
           defaultValue={1}

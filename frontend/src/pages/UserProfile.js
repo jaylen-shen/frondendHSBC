@@ -2,10 +2,16 @@
 import React from 'react';
 import DashboardCard from '../components/DashboardCard.js';
 import DashboardContent  from '../components/DashboardContent.js'
+import { Navigate, Link, useNavigate } from 'react-router-dom';
 // import TransactionTable from '../components/TransactionTable.js';
 // import PortfolioDistribution from '../components/Charts/PortfolioDistribution.js'
 
 const UserProfile = () => {
+  if(!sessionStorage.getItem('id')){
+    return <Navigate to="/login" />;
+  }
+
+
   return (
     <div>
       <h2>User Profile</h2>

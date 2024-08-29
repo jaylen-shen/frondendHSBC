@@ -27,9 +27,9 @@ const Login = () => {
 
       if (response.ok) {
         const userData = await response.json();
-        
-        localStorage.setItem('token', userData.token); // Store token in local storage
-        setUser(userData); // Set the user in the local state
+        console.log(userData.id)
+        sessionStorage.setItem('id', userData.id); // Store token in local storage
+       
         navigate('/dashboard'); // Redirect to the root path (http://localhost:3002/)
       } else {
         const errorData = await response.json();
