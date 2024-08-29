@@ -65,6 +65,7 @@ const Dashboard = () => {
 
       labels.reverse();
       data.reverse();
+      
 
       const smaData = calculateMovingAverage(data, 5);
 
@@ -83,6 +84,7 @@ const Dashboard = () => {
       );
 
       setCompanyInfo(companyResponse.data); // Set the company information
+      console.log()
       
     } catch (error) {
       setError('Failed to fetch stock data. Please try again.');
